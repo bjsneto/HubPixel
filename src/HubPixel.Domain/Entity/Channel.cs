@@ -28,4 +28,5 @@ public class Channel : AggregateRoot
         if (string.IsNullOrWhiteSpace(UrlStream))
             throw new ArgumentException("UrlStream cannot be empty.");
     }
+
 }
