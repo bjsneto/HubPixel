@@ -21,6 +21,12 @@ public class Channel : AggregateRoot
         Validate();
     }
 
+    public void AddCategories(IEnumerable<Category> categories)
+    {
+        ArgumentNullException.ThrowIfNull(categories);
+        _categories.AddRange(categories);
+    }
+
     public void Validate()
     {
         if (string.IsNullOrWhiteSpace(Name))
@@ -28,5 +34,4 @@ public class Channel : AggregateRoot
         if (string.IsNullOrWhiteSpace(UrlStream))
             throw new ArgumentException("UrlStream cannot be empty.");
     }
-
 }
