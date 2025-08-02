@@ -44,11 +44,16 @@ public class CategoryTest
     [Trait("Domain", "Category - Aggregate")]
     public void InstantiateWithDeactive()
     {
-        var category = new DomainEntity.Category("Category", "Description", false);
+        var validCategory = _fixture.GetValidCategory();
+        var validName = validCategory.Name;
+        var validDescription = validCategory.Description;
+        var validIsActive = validCategory.IsActive;
+
+        var category = new DomainEntity.Category(validName, validDescription, validIsActive);
         category.Should().NotBeNull();
-        category.Name.Should().Be("Category");
-        category.Description.Should().Be("Description");
-        category.IsActive.Should().BeFalse();
+        category.Name.Should().Be(validName);
+        category.Description.Should().Be(validDescription);
+        category.IsActive.Should().Be(validIsActive);
         category.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
     }
 }

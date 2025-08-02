@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-using HubPixel.UnitTests.Domain.Entity.Category;
 
 namespace HubPixel.UnitTests.Domain.Entity.Channel;
 
@@ -61,9 +60,10 @@ public class ChannelTest
     [Trait("Domain", "Channel - Aggregate")]
     public void InstantiateWithProvidedData()
     {
-        var expectedName = "Meu Canal Legal";
-        var expectedDescription = "Um canal sobre programação e testes.";
-        var expectedUrl = "http://minha.stream/legal";
+        var expectedChannel = _fixture.GetValidChannel();
+        var expectedName = expectedChannel.Name;
+        var expectedDescription = expectedChannel.Description;
+        var expectedUrl = expectedChannel.UrlStream;
 
         var channel = _fixture.GetChannelBuilder()
             .WithName(expectedName)

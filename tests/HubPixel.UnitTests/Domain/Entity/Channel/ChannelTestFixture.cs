@@ -1,5 +1,4 @@
 ﻿using HubPixel.UnitTests.Domain.Entity.Category;
-using CategoryEntity = HubPixel.Domain.Entity;
 using DomainEntity = HubPixel.Domain.Entity;
 
 namespace HubPixel.UnitTests.Domain.Entity.Channel;
