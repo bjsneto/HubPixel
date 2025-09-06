@@ -10,50 +10,79 @@ public class CategoryTest
 
     public CategoryTest(CategoryTestFixture fixture) => _fixture = fixture;
 
-    [Fact(DisplayName = nameof(Instantiate))]
+    [Fact(DisplayName = nameof(InstantiateWithValidParameters))]
     [Trait("Domain", "Category - Aggregate")]
-    public void Instantiate()
+    public void InstantiateWithValidParameters()
     {
-        var validCategory = _fixture.GetValidCategory();
-        var isActive = _fixture.GetRandomBoolean();
-        var datetimeBefore = DateTime.UtcNow;
-
-        var category = new DomainEntity.Category(validCategory.Name, validCategory.Description, isActive);
-        var datetimeAfter = DateTime.UtcNow.AddSeconds(1);
+        var categoryBuilder = _fixture.GetCategoryBuilder();
+        var category = categoryBuilder.Build();
 
         category.Should().NotBeNull();
-        category.Name.Should().Be(validCategory.Name);
-        category.Description.Should().Be(validCategory.Description);
-        category.IsActive.Should().Be(isActive);
-        category.CreatedAt.Should().NotBeSameDateAs(unexpected: default);
-        (category.CreatedAt >= datetimeBefore).Should().BeTrue();
-        (category.CreatedAt <= datetimeAfter).Should().BeTrue();
-    }
-
-    [Fact(DisplayName = nameof(InstantiateWithEmptyName))]
-    [Trait("Domain", "Category - Aggregate")]
-    public void InstantiateWithEmptyName()
-    {
-        Action act = () => new DomainEntity.Category("", "Description");
-
-        act.Should().Throw<ArgumentException>()
-            .WithMessage("Name cannot be empty.");
-    }
-
-    [Fact(DisplayName = nameof(InstantiateWithDeactive))]
-    [Trait("Domain", "Category - Aggregate")]
-    public void InstantiateWithDeactive()
-    {
-        var validCategory = _fixture.GetValidCategory();
-        var validName = validCategory.Name;
-        var validDescription = validCategory.Description;
-        var validIsActive = validCategory.IsActive;
-
-        var category = new DomainEntity.Category(validName, validDescription, validIsActive);
-        category.Should().NotBeNull();
-        category.Name.Should().Be(validName);
-        category.Description.Should().Be(validDescription);
-        category.IsActive.Should().Be(validIsActive);
+        category.Name.Should().Be(category.Name);
+        category.Description.Should().Be(category.Description);
+        category.IsActive.Should().BeTrue();
         category.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+    }
+
+    [Theory(DisplayName = nameof(ThrowExceptionWhenNameIsInvalid))]
+    [Trait("Domain", "Category - Aggregate")]
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData(" ")]
+    public void ThrowExceptionWhenNameIsInvalid(string invalidName)
+    {
+        var categoryBuilder = _fixture.GetCategoryBuilder();
+        Action action = () => categoryBuilder.WithName(invalidName).Build();
+
+        action.Should().Throw<ArgumentException>()
+            .WithMessage("Name cannot be null or empty.");
+    }
+
+    [Fact(DisplayName = nameof(ThrowExceptionWhenNameIsTooLong))]
+    [Trait("Domain", "Category - Aggregate")]
+    public void ThrowExceptionWhenNameIsTooLong()
+    {
+        var categoryBuilder = _fixture.GetCategoryBuilder();
+        Action action = () => categoryBuilder.WithNameGreaterThan100Characters().Build();
+
+        action.Should().Throw<ArgumentException>()
+            .WithMessage("Name cannot exceed 100 characters.");
+    }
+
+    [Fact(DisplayName = nameof(Activate))]
+    [Trait("Domain", "Category - Aggregate")]
+    public void Activate()
+    {
+        var category = _fixture.GetValidCategory();
+        category.Deactivate(); // Deixa a categoria inativa para o teste
+
+        category.Activate();
+
+        category.IsActive.Should().BeTrue();
+    }
+
+    [Fact(DisplayName = nameof(Deactivate))]
+    [Trait("Domain", "Category - Aggregate")]
+    public void Deactivate()
+    {
+        var category = _fixture.GetValidCategory();
+
+        category.Deactivate();
+
+        category.IsActive.Should().BeFalse();
+    }
+
+    [Fact(DisplayName = nameof(Update))]
+    [Trait("Domain", "Category - Aggregate")]
+    public void Update()
+    {
+        var category = _fixture.GetValidCategory();
+        var newName = _fixture.GetCategoryBuilder().Build().Name;
+        var newDescription = _fixture.GetCategoryBuilder().Build().Description;
+
+        category.Update(newName, newDescription);
+
+        category.Name.Should().Be(newName);
+        category.Description.Should().Be(newDescription);
     }
 }

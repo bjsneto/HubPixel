@@ -8,35 +8,34 @@ public class Category : AggregateRoot
     public bool IsActive { get; private set; }
     public DateTime CreatedAt { get; private set; }
 
-    public Category(string name, string description, bool isActive = true)
+    private Category(string name, string description)
         : base()
     {
         Name = name;
         Description = description;
-        IsActive = isActive;
-        CreatedAt = DateTime.UtcNow;
-        Validate();
-    }
-    public void Activate()
-    {
         IsActive = true;
-        Validate();
+        CreatedAt = DateTime.UtcNow;
     }
-    public void Deactivate()
+
+    public static Category Create(string name, string description)
     {
-        IsActive = false;
-        Validate();
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Name cannot be null or empty.");
+        if (name.Length > 100)
+            throw new ArgumentException("Name cannot exceed 100 characters.");
+
+        return new Category(name, description);
     }
+
     public void Update(string name, string description)
     {
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Name cannot be null or empty.");
+
         Name = name;
-        Description = description ?? Description;
-        Validate();
+        Description = description;
     }
-    public void Validate()
-    {
-        if (string.IsNullOrWhiteSpace(Name))
-            throw new ArgumentException("Name cannot be empty.");
-        
-    }
+
+    public void Activate() => IsActive = true;
+    public void Deactivate() => IsActive = false;
 }

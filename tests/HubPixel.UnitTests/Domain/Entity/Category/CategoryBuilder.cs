@@ -7,13 +7,11 @@ public class CategoryBuilder : BaseFixture
 {
     private string _name;
     private string _description;
-    private bool _isActive;
-    
+   
     public CategoryBuilder()
     {
         _name = GetValidCategoryName();
-        _description = GetValidCategoryDescription();
-        _isActive = true;
+        _description = GetValidCategoryDescription(); 
     }
 
     public CategoryBuilder WithName(string name)
@@ -28,10 +26,21 @@ public class CategoryBuilder : BaseFixture
         return this;
     }
 
-    public CategoryBuilder WithIsActive(bool isActive)
+    public DomainEntity.Category Build()
     {
-        _isActive = isActive;
-        return this;
+        return DomainEntity.Category.Create(_name, _description);
+    }
+
+    public DomainEntity.Category Build(bool throwException)
+    {
+        if (throwException)
+        {
+            return DomainEntity.Category.Create(_name, _description);
+        }
+        else
+        {
+            return DomainEntity.Category.Create(_name, _description);
+        }
     }
 
     public CategoryBuilder WithInvalidName()
@@ -40,15 +49,10 @@ public class CategoryBuilder : BaseFixture
         return this;
     }
 
-    public CategoryBuilder WithNameGreaterThan255Characters()
+    public CategoryBuilder WithNameGreaterThan100Characters() // Ajustado para 100 caracteres
     {
-        _name = Faker.Lorem.Letter(256); 
+        _name = Faker.Lorem.Letter(101);
         return this;
-    }
-
-    public DomainEntity.Category Build()
-    {
-        return new DomainEntity.Category(_name, _description, _isActive);
     }
 
     private string GetValidCategoryName()

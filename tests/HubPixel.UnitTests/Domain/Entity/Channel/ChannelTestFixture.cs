@@ -11,36 +11,19 @@ public class ChannelTestFixture
         _categoryTestFixture = new CategoryTestFixture();
     }
 
-    public ChannelBuilder GetChannelBuilder()
-    {
-        return new ChannelBuilder();
-    }
+    public ChannelBuilder GetChannelBuilder() => new ChannelBuilder();
 
-    public DomainEntity.Channel GetValidChannel()
-    {
-        return GetChannelBuilder().Build();
-    }
-
-    public List<DomainEntity.Channel> GetChannelList(int count = 10)
-    {
-        var channels = new List<DomainEntity.Channel>();
-        for (int i = 0; i < count; i++)
-        {
-            channels.Add(GetChannelBuilder().Build());
-        }
-        return channels;
-    }
+    public DomainEntity.Channel GetValidChannel() => GetChannelBuilder().Build();
 
     public DomainEntity.Channel GetValidChannelWithCategories(int categoryCount = 3)
     {
-        var categories = _categoryTestFixture.GetCategoryList(categoryCount);
+        var categoryIds = Enumerable.Range(0, categoryCount).Select(_ => Guid.NewGuid()).ToList();
+
         return GetChannelBuilder()
-            .WithCategories(categories)
+            .WithCategoryIds(categoryIds)
             .Build();
     }
-
 }
-
 [CollectionDefinition(nameof(ChannelTestFixture))]
 public class ChannelTestFixtureCollection
     : ICollectionFixture<ChannelTestFixture>

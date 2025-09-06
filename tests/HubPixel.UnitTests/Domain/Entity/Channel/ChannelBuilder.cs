@@ -8,14 +8,13 @@ public class ChannelBuilder : BaseFixture
     private string _name;
     private string _description;
     private string _urlStream;
-    private List<DomainEntity.Category> _categories;
+    private readonly List<Guid> _categoryIds = [];
 
     public ChannelBuilder()
     {
         _name = GetValidChannelName();
         _description = GetValidChannelDescription();
         _urlStream = GetValidUrlStream();
-        _categories = [];
     }
 
     public ChannelBuilder WithName(string name)
@@ -36,15 +35,9 @@ public class ChannelBuilder : BaseFixture
         return this;
     }
 
-    public ChannelBuilder WithCategories(List<DomainEntity.Category> categories)
+    public ChannelBuilder WithCategoryIds(IEnumerable<Guid> categoryIds)
     {
-        _categories = categories;
-        return this;
-    }
-
-    public ChannelBuilder AddCategory(DomainEntity.Category category)
-    {
-        _categories.Add(category);
+        _categoryIds.AddRange(categoryIds);
         return this;
     }
 
@@ -62,33 +55,10 @@ public class ChannelBuilder : BaseFixture
 
     public DomainEntity.Channel Build()
     {
-        var channel = new DomainEntity.Channel(_name, _description, _urlStream);
-
-        if (_categories.Any())
-        {
-            channel.AddCategories(_categories);
-        }
-        return channel;
+        return DomainEntity.Channel.Create(_name, _description, _urlStream, _categoryIds);
     }
 
-    private string GetValidChannelName()
-    {
-        var channelName = string.Empty;
-        while (channelName.Length < 3 || channelName.Length > 255)
-            channelName = Faker.Company.CatchPhrase();
-        return channelName;
-    }
-
-    private string GetValidChannelDescription()
-    {
-        var channelDescription = Faker.Lorem.Paragraph(5);
-        if (channelDescription.Length > 10_000)
-            channelDescription = channelDescription[..10_000];
-        return channelDescription;
-    }
-
-    private string GetValidUrlStream()
-    {
-        return Faker.Internet.Url();
-    }
+    private string GetValidChannelName() => Faker.Company.CatchPhrase();
+    private string GetValidChannelDescription() => Faker.Lorem.Paragraph(5);
+    private string GetValidUrlStream() => Faker.Internet.Url();
 }

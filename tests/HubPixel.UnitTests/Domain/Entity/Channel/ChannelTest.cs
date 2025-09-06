@@ -11,71 +11,92 @@ public class ChannelTest
         _fixture = fixture;
     }
 
-    [Fact(DisplayName = nameof(Instantiate))]
+    [Fact(DisplayName = nameof(InstantiateWithValidParameters))]
     [Trait("Domain", "Channel - Aggregate")]
-    public void Instantiate()
+    public void InstantiateWithValidParameters()
     {
-        var datetimeBefore = DateTime.UtcNow;
-        var channel = _fixture.GetChannelBuilder().Build();
+        var channelBuilder = _fixture.GetChannelBuilder();
+        var channel = channelBuilder.Build();
 
         channel.Should().NotBeNull();
         channel.Name.Should().Be(channel.Name);
         channel.Description.Should().Be(channel.Description);
-        channel.UrlStream.Should().Be(channel.UrlStream);
-        channel.CreatedAt.Should().NotBeSameDateAs(unexpected: default);
-        (channel.CreatedAt >= datetimeBefore).Should().BeTrue();
-        (channel.CreatedAt <= DateTime.UtcNow.AddSeconds(1)).Should().BeTrue();
-        channel.Categories.Should().BeEmpty();
+        channel.UrlStream.Value.Should().Be(channel.UrlStream.Value);
+        channel.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        channel.CategoryIds.Should().BeEmpty();
     }
 
-    [Fact(DisplayName = nameof(AddCategoryToChannel))]
+    [Theory(DisplayName = nameof(ThrowExceptionWhenNameIsInvalid))]
     [Trait("Domain", "Channel - Aggregate")]
-    public void AddCategoryToChannel()
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData(" ")]
+    public void ThrowExceptionWhenNameIsInvalid(string invalidName)
     {
-        var channel = _fixture.GetValidChannelWithCategories(10);
-        channel.Categories.Should().HaveCount(10);
-    }
-
-    [Fact(DisplayName = nameof(InstantiateWithEmptyName))]
-    [Trait("Domain", "Channel - Aggregate")]
-    public void InstantiateWithEmptyName()
-    {
-        Action act = () => _fixture.GetChannelBuilder().WithInvalidName().Build();
+        var channelBuilder = _fixture.GetChannelBuilder();
+        Action act = () => channelBuilder.WithName(invalidName).Build();
 
         act.Should().Throw<ArgumentException>()
-            .WithMessage("Name cannot be empty.");
+            .WithMessage("Name cannot be null or empty.");
     }
 
-    [Fact(DisplayName = nameof(InstantiateWithEmptyUrlStream))]
+    [Theory(DisplayName = nameof(ThrowExceptionWhenUrlIsInvalid))]
     [Trait("Domain", "Channel - Aggregate")]
-    public void InstantiateWithEmptyUrlStream()
+    [InlineData("")]
+    [InlineData(null)]
+    [InlineData(" ")]
+    [InlineData("invalid-url")]
+    public void ThrowExceptionWhenUrlIsInvalid(string invalidUrl)
     {
-        Action act = () => _fixture.GetChannelBuilder().WithInvalidUrlStream().Build();
+        var channelBuilder = _fixture.GetChannelBuilder();
+        Action act = () => channelBuilder.WithUrlStream(invalidUrl).Build();
 
         act.Should().Throw<ArgumentException>()
-            .WithMessage("UrlStream cannot be empty.");
+            .WithMessage("Invalid URL stream format.");
     }
 
-    [Fact(DisplayName = nameof(InstantiateWithProvidedData))]
+    [Fact(DisplayName = nameof(AddCategories))]
     [Trait("Domain", "Channel - Aggregate")]
-    public void InstantiateWithProvidedData()
+    public void AddCategories()
     {
-        var expectedChannel = _fixture.GetValidChannel();
-        var expectedName = expectedChannel.Name;
-        var expectedDescription = expectedChannel.Description;
-        var expectedUrl = expectedChannel.UrlStream;
+        var channel = _fixture.GetValidChannel();
+        var categoryIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
 
-        var channel = _fixture.GetChannelBuilder()
-            .WithName(expectedName)
-            .WithDescription(expectedDescription)
-            .WithUrlStream(expectedUrl)
-            .Build();
+        channel.AddCategories(categoryIds);
 
-        channel.Should().NotBeNull();
-        channel.Name.Should().Be(expectedName);
-        channel.Description.Should().Be(expectedDescription);
-        channel.UrlStream.Should().Be(expectedUrl);
-        channel.Categories.Should().BeEmpty();
+        channel.CategoryIds.Should().HaveCount(3);
+        channel.CategoryIds.Should().Contain(categoryIds);
     }
 
+    [Fact(DisplayName = nameof(RemoveCategories))]
+    [Trait("Domain", "Channel - Aggregate")]
+    public void RemoveCategories()
+    {
+        var categoryIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+        var channel = _fixture.GetChannelBuilder().WithCategoryIds(categoryIds).Build();
+
+        var idsToRemove = new List<Guid> { categoryIds[0], categoryIds[2] };
+
+        channel.RemoveCategories(idsToRemove);
+
+        channel.CategoryIds.Should().HaveCount(1);
+        channel.CategoryIds.Should().NotContain(idsToRemove);
+        channel.CategoryIds.Should().Contain(categoryIds[1]);
+    }
+
+    [Fact(DisplayName = nameof(Update))]
+    [Trait("Domain", "Channel - Aggregate")]
+    public void Update()
+    {
+        var channel = _fixture.GetValidChannel();
+        var newName = _fixture.GetChannelBuilder().Build().Name;
+        var newDescription = _fixture.GetChannelBuilder().Build().Description;
+        var newUrl = _fixture.GetChannelBuilder().Build().UrlStream.Value;
+
+        channel.Update(newName, newDescription, newUrl);
+
+        channel.Name.Should().Be(newName);
+        channel.Description.Should().Be(newDescription);
+        channel.UrlStream.Value.Should().Be(newUrl);
+    }
 }
