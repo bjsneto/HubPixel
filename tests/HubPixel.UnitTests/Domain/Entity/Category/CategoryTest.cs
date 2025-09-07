@@ -54,7 +54,7 @@ public class CategoryTest
     public void Activate()
     {
         var category = _fixture.GetValidCategory();
-        category.Deactivate(); // Deixa a categoria inativa para o teste
+        category.Deactivate(); 
 
         category.Activate();
 
